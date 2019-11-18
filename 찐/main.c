@@ -17,11 +17,24 @@
 
 #define N_MIN_ENDCARD		30
 
-int n_user;//참여인원 수 
-int gameEnd; 
+//card tray object
+int CardTray[N_CARDSET*N_CARD];
+int cardIndex = 0;
+
+//player info 
+int dollar[N_MAX_USER];						//dollars that each player has
+int n_user;	//참여인원 수 
+
+
+//play yard information
+int cardhold[N_MAX_USER+1][N_MAX_CARDHOLD];	//cards that currently the players hold
+int cardSum[N_MAX_USER];					//sum of the cards
+int bet[N_MAX_USER];						//current betting 
+int gameEnd = 0;							//game end flag
+
 
 void mixCardTray(void){
-	int CardTray[N_CARDSET*N_CARD];
+
 	int i;
 	int j;
 	int rn;//랜덤숫자 
@@ -65,7 +78,8 @@ int getCardNum(int cardnum) {
 			return 7;	
 		case 9:
 			return 9;
-		case 10,11,12,13:		 
+		case 10,11,12,13:
+			return 10;		 
 	}
 }
 
@@ -116,10 +130,11 @@ void printCard(int cardnum) {
 }
 
 int betDollar(void){
+	
 	int bet=0;//player 배팅 금액 
 	int rn_bet=0;//다른 player의 배팅금액(랜덤) 
 	int i;
-	int dollar[N_MAX_USER]
+
 	srand((unsigned)time(NULL));
 	
 	dollar[0]=N_DOLLAR-bet;//player 현재 배팅금액 
@@ -134,8 +149,48 @@ int betDollar(void){
 	    dollar[i]=N_DOLLAR-rn_bet;
 		printf("--->player %d:$%d\n",i,rn_bet);
 	}
-	
+	//승패에 따라 배팅금액 변화 만들기 
 }
+
+int getIntegerInput(void) {
+    int input, num;
+    
+    num = scanf("%d", &input);
+    fflush(stdin);
+    if (num != 1) //if it fails to get integer
+        input = -1;
+    
+    return input;
+}
+
+int pullCard(void) {
+	 
+	 
+	 
+	 return ;
+}
+
+void offerCards(void) {
+	int i;
+	//1. give two card for each players
+	for (i=0;i<n_user;i++)
+	{
+		cardhold[i][0] = pullCard();
+		cardhold[i][1] = pullCard();
+	}
+	//2. give two card for the operator
+	cardhold[n_user][0] = pullCard();
+	cardhold[n_user][1] = pullCard();
+	
+	return;
+}
+
+
+
+
+
+
+
 int main(int argc, char *argv[]) {
 	
 	//참여인원 입력 
@@ -147,14 +202,15 @@ int main(int argc, char *argv[]) {
 	//게임시작
 	while(gameend!=0){ //나중에 gameend조건 변수 만들기 
 	
-	int index=1;
+	int cardindex=1;
 	int n_round=1;
 	n_round++;
 		
 	printf("-----------------------------------\n");
-	printf("------ROUND %d(card index:%d)------\n",n_round,index); 
+	printf("------ROUND %d(card index:%d)------\n",n_round,cardindex); 
 	printf("-----------------------------------\n");
 	
+	betDollar();
 	midCardTray();
 	}
 
