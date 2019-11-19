@@ -40,20 +40,25 @@ void mixCardTray(void){
 	int rn;//랜덤숫자 
 	srand( (unsigned)time(NULL));
 	
-	rn=rand()%N_CARDSET*N_CARD;
 	
-	for(i=0;i<N_CARDSET*N_CARD;i++)
+	for(i=0;i<100;i++)
 	{
-		CardTray[i]=i;
+		for(j=0;j<N_CARDSET*N_CARD;j++)
+	    {
+		 CardTray[j]=j;
+		 rn=rand()%N_CARDSET*N_CARD;
+		 swap(CardTray[j],CardTray[rn]);
+	    }
 	}
-	for(j=0;j<N_CARDSET*N_CARD;j++)
-	{
-		swap(CardTray[j],CardTray[rn]);
-	}
+	
+
 	
 }
 
 int getCardNum(int cardnum) {
+	
+	int n;
+	cardnum=CardTray[n];
 	
 		switch(cardnum%13+1)
 	{
@@ -78,7 +83,10 @@ int getCardNum(int cardnum) {
 			return 7;	
 		case 9:
 			return 9;
-		case 10,11,12,13:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
 			return 10;		 
 	}
 }
@@ -141,13 +149,18 @@ int betDollar(void){
 		
 	printf("----------BETTING STEP---------\n");
 	printf("--->your betting(total:%d): ",dollar[0]);
-	scanf("%d",&bet);
+	scanf("%d",&bet[0]);
 	
-	for(i=1;i<=n_user;i++)
+	if(bet[0]>dollar[0]||bet[0<0])
+	 printf("You have $%d.Bet again plz.",dollar[0]);
+	else
 	{
-	    rn_bet=rand()%50+1;
-	    dollar[i]=N_DOLLAR-rn_bet;
-		printf("--->player %d:$%d\n",i,rn_bet);
+		for(i=1;i<=n_user;i++)
+	    {
+	     rn_bet=rand()%50+1;
+	     dollar[i]=N_DOLLAR-rn_bet;
+		 printf("--->player %d:$%d\n",i,rn_bet);
+	    }
 	}
 	//승패에 따라 배팅금액 변화 만들기 
 }
@@ -165,9 +178,9 @@ int getIntegerInput(void) {
 
 int pullCard(void) {
 	 
+	 cardIndex++;	 
 	 
-	 
-	 return ;
+	 return cardIndex;
 }
 
 void offerCards(void) {
@@ -185,29 +198,110 @@ void offerCards(void) {
 	return;
 }
 
+void printCardInitialStatus(void) {
+	
+	
+}
+
+int getAction(void) {
+	
+	int act; //Hit or Stay
+	
+	printf("\t▒▒▒Action: Hit(0) or Stay(others)");
+	act=getIntegerInput;
+	
+	if(act==0) //Hit-->계속 진행
+	else //멈춤 
+	
+	return act; 
+}
+
+void printUserCardStatus(int user, int cardcnt) {
+	int i;
+	
+	printf("   -> card : ");
+	for (i=0;i<cardcnt;i++)
+		printCard(cardhold[user][i]);
+	printf("\t ▒▒▒ ");
+}
+
+
+int main(int argc, char *argv[]) {
+	int roundIndex = 0;
+	int max_user;
+	int i;
+	
+	srand((unsigned)time(NULL));
+	
+	//참여인원 입력 
+
+	printf("input a number of player(MAX:%d): ",N_MAX_USER);
+	n_user=getIntegerInput();
+	
+	if (n_user>N_MAX_USER||n_user<=0)
+	 printf("The number of players must be from 1 to %d",N_MAX_USER);
+	else
+	 printf("---> cards are mixed& putted into tray\n");
+	 
+	//Game initialization --------
+	//1. players' dollar
+	
+	//2. card tray
+	mixCardTray();
 
 
 
-
-
+	//Game start --------
+	do {
+		
+		betDollar();
+		offerCards(); //1. give cards to all the players
+		
+		printCardInitialStatus();
+		printf("\n------------------ GAME start --------------------------\n");
+		
+		//each player's turn
+		for () //each player
+		{
+			while () //do until the player dies or player says stop
+			{
+				//print current card status printUserCardStatus();
+				//check the card status ::: calcStepResult()
+				//GO? STOP? ::: getAction()
+				//check if the turn ends or not
+			}
+		}
+		
+		//result
+		checkResult();
+	} while (gameEnd == 0);
+	
+	checkWinner();
+	
+	
+	return 0;
+}
 
 int main(int argc, char *argv[]) {
 	
 	//참여인원 입력 
 
 	printf("input a number of player(MAX:%d): ",N_MAX_USER);
-	scanf("%d",&n_user);
-	printf("---> cards are mixed& putted into tray\n");
+	n_user=getIntegerInput();
+	
+	if (n_user>N_MAX_USER||n_user<=0)
+	 printf("The number of players must be from 1 to %d",N_MAX_USER);
+	else
+	 printf("---> cards are mixed& putted into tray\n");
 	
 	//게임시작
-	while(gameend!=0){ //나중에 gameend조건 변수 만들기 
+	while(gameEnd!=0){ 
 	
-	int cardindex=1;
 	int n_round=1;
 	n_round++;
 		
 	printf("-----------------------------------\n");
-	printf("------ROUND %d(card index:%d)------\n",n_round,cardindex); 
+	printf("------ROUND %d(card index:%d)------\n",n_round,cardIndex); 
 	printf("-----------------------------------\n");
 	
 	betDollar();
