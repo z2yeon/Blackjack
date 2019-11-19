@@ -29,8 +29,8 @@ int n_user;									//number of users
 int cardhold[N_MAX_USER+1][N_MAX_CARDHOLD];	//cards that currently the players hold
 int cardSum[N_MAX_USER];					//sum of the cards
 int bet[N_MAX_USER];						//current betting 
-int gameEnd = 0;
-int roundIndex = 0;							//game end flag
+int gameEnd = 0;							//game end flag
+int roundIndex = 0;							//round Index
 
 //This acts as scanf()
 int getIntegerInput(void) {
@@ -56,10 +56,7 @@ int getCardNum(int cardnum) {
 	switch(cardnum%13+1)
 	{
 		case 1:
-			if(sum<=10)
-			 return 11;
-			else if(sum>10)
-			 return 1;
+			return 11;
 			break;
 			
 		case 10:
@@ -157,8 +154,11 @@ int pullCard(void) {
 	 i=CardTray[cardIndex];
 	 cardIndex++;	 
 	 
-	 if(cardIndex==N_CARDSET*N_CARD)  //Ran out of Card Tray 
+	 if(cardIndex==N_CARDSET*N_CARD)//Ran out of Card Tray 
+	 {
+	 	printf("\tNo more card! GAME END------ ")
 		return gameEnd; //gameEnd!!
+	 }
 	 else
 		return i;
 	 
@@ -182,30 +182,36 @@ int configUser(void) {
 //betting
 int betDollar(void){
 	
-	int bet=0;//player 배팅 금액 
-	int rn_bet=0;//다른 player의 배팅금액(랜덤) 
-	int i;
-
+	int i; 
+	int bet;
+	
 	srand((unsigned)time(NULL));
 	
-	dollar[0]=N_DOLLAR-bet;//player 현재 배팅금액 
-		
-	printf("----------BETTING STEP---------\n");
-	printf("--->your betting(total:%d): ",dollar[0]);
-	scanf("%d",&bet[0]);
+	do{
+			
+	 printf("----------BETTING STEP---------\n");
+	 printf("--->your betting(total:$%d): ",dollar[0]);
+	 bet=getIntegerInput();	
+	 
+	 if(bet<0 || bet>dollar[0])
+	 {
+	 	printf("Invalid Input.\n");
+		printf("You have $%d.Bet again.",dollar[0]);
+	 }
+ 	
+	}(while bet<=0 || bet>dollar[0] );
 	
-	if(bet[0]>dollar[0]||bet[0<0])
-	 printf("You have $%d.Bet again plz.",dollar[0]);
-	else
+
+	
+	if (0<bet&&bet<=dollar[0])
 	{
-		for(i=1;i<=n_user;i++)
-	    {
-	     rn_bet=rand()%50+1;
-	     dollar[i]=N_DOLLAR-rn_bet;
-		 printf("--->player %d:$%d\n",i,rn_bet);
-	    }
+		bet=bet[0];				//player 배팅금액
+		for(i=1;i<n_user;i++)//다른 player 배팅금액(랜덤)
+		{
+	     bet[i]=(rand()%N_MAX_BET)+1;
+		 printf("--->player%d:$%d\n",i,bet[i]);
+		}	
 	}
-	//승패에 따라 배팅금액 변화 만들기 
 }
 
 //offering initial 2 cards
@@ -213,17 +219,15 @@ void offerCards(void) {
 	
 	int i;
 	
+	cardhold[n_user-1][0]=pullCard();//give first card for dealer
+	cardhold[n_user-1][1]=pullCard();//give second card for dealer
 	
-	cardhold[n_user][0]=pullCard();//give first card for dealer
-	cardhold[n_user][1]=pullCard();//give second card for dealer
-	
-	for (i=0;i<n_user;i++)
+	for (i=0;i<n_user-1;i++)
 	{
 		cardhold[i][0]=pullCard();
 		cardhold[i][1]=pullCard();
 	}
 	
-	return;
 }
 
 //print initial card status
@@ -250,7 +254,12 @@ int getAction(void) {
 
 //literally...
 void printUserCardStatus(int user, int cardcnt) {
-	int i;
+	
+	int i;	
+
+	printf("   -> dealer     :X     ");
+	printCard(cardhold[n_user][1]);
+	printf("\n");
 	
 	printf("   -> card : ");
 	for (i=0;i<cardcnt;i++)
@@ -274,6 +283,44 @@ int calcStepResult() {
 
 int checkResult() {
 	
+	printf("\t---> your result: ");
+	
+	int i;
+	/*
+	for(i=1;i<=n_user;i++)
+	{	
+		printf("\t---> player%d result: ",i);
+			
+		
+		
+		if(cardSum[i]>21)
+			printf("lose due to overflow!  --> $%d\n",dollar[i]);		//overflow, lose
+		
+		else if(cardSum[i]==21)
+			printf("Blackjack! Win.---> $%d\n",dollar[i]);				//blackjack, win
+		
+		else if(cardSum[n_user]>21)
+		{
+			dollar[i]+=bet[i];
+			printf("dealer overflow! win!  --> $%d\n",dollar[i]);
+		}
+		else if(cardSum[n_user]==21)
+		{
+			dollar[i]-=bet[i];
+			printf("dealer blackhack! lose  --> $%d\n",dollar[i]);
+		}
+		else if(cardSum[i]>=cardSum[n_user])
+		{
+			dollar[i]+=bet[i];
+			printf("win! (sum:%d)  --> $%d\n",cardSum[i],dollar[i]);
+		}
+		else if(cardSum[i]<cardSum[n_user])
+		{
+			dollar[i]-=bet[i];
+			printf("lose  (sum:%d)  --> $%d\n",cardSum[i],dollar[i]);
+		}
+		*/	
+	}	
 }
 
 int checkWinner() {
@@ -283,9 +330,10 @@ int checkWinner() {
 int sumCard(int cardnum,int i) {
 	
 	if(cardnum%13==1)							//A is 1 or 11
+	{	
 		
 		cardSum[i]+=1;
-		
+	}
 	else if(cardnum%13==11||card%13==12||card%13==0)	//J,Q,K==10 
 		cardSum[i]+=10;
 
