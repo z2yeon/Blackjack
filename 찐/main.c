@@ -23,75 +23,62 @@ int cardIndex = 0;
 
 //player info 
 int dollar[N_MAX_USER];						//dollars that each player has
-int n_user;	//참여인원 수 
-
+int n_user;									//number of users 
 
 //play yard information
 int cardhold[N_MAX_USER+1][N_MAX_CARDHOLD];	//cards that currently the players hold
 int cardSum[N_MAX_USER];					//sum of the cards
 int bet[N_MAX_USER];						//current betting 
-int gameEnd = 0;							//game end flag
+int gameEnd = 0;
+int roundIndex = 0;							//game end flag
 
-
-void mixCardTray(void){
-
-	int i;
-	int j;
-	int rn;//랜덤숫자 
-	srand( (unsigned)time(NULL));
-	
-	
-	for(i=0;i<100;i++)
-	{
-		for(j=0;j<N_CARDSET*N_CARD;j++)
-	    {
-		 CardTray[j]=j;
-		 rn=rand()%N_CARDSET*N_CARD;
-		 swap(CardTray[j],CardTray[rn]);
-	    }
-	}
-	
-
-	
+//This acts as scanf()
+int getIntegerInput(void) {
+    int input, num;
+    
+    num = scanf("%d", &input);
+    fflush(stdin);
+    if (num != 1) //if it fails to get integer
+        input = -1;
+    
+    return input;
 }
 
+
+//------ card processing functions ---------------
+
+//calculate the actual card number in the blackjack game
 int getCardNum(int cardnum) {
 	
 	int n;
 	cardnum=CardTray[n];
 	
-		switch(cardnum%13+1)
+	switch(cardnum%13+1)
 	{
 		case 1:
-			if(sum<=0)
+			if(sum<=10)
 			 return 11;
 			else if(sum>10)
 			 return 1;
-		case 2:
-			return 2;
-		case 3:
-			return 3;
-		case 4:
-			return 4;
-		case 5:
-			return 5;	
-		case 6:
-			return 6;
-		case 7:
-			return 7;
-		case 8:
-			return 7;	
-		case 9:
-			return 9;
+			break;
+			
 		case 10:
 		case 11:
 		case 12:
 		case 13:
-			return 10;		 
+			return 10;
+			break;
+				
+		default:
+			return (cardnum%13+1);	 
 	}
 }
 
+//print the card information (e.g. DiaA)
 void printCard(int cardnum) {
+	
+	int n;
+	cardnum=CardTray[n];
 	
 	switch(cardnum/13)
 	{
@@ -137,6 +124,62 @@ void printCard(int cardnum) {
 	
 }
 
+
+//------ card array controllers -------------------------------
+
+//mix the card sets and put in the array
+void mixCardTray(void){
+
+	int i;
+	int j;
+	int rn;//랜덤숫자 
+	srand( (unsigned)time(NULL));
+	
+	
+	for(i=0;i<100;i++)
+	{
+		for(j=0;j<N_CARDSET*N_CARD;j++)
+	    {
+		 CardTray[j]=j;
+		 rn=rand()%N_CARDSET*N_CARD;
+		 swap(CardTray[j],CardTray[rn]);
+	    }
+	}
+	
+
+	
+}
+
+//get one card from the tray
+int pullCard(void) {
+	
+	 int i;
+	 i=CardTray[cardIndex];
+	 cardIndex++;	 
+	 
+	 if(cardIndex==N_CARDSET*N_CARD)  //Ran out of Card Tray 
+		return gameEnd; //gameEnd!!
+	 else
+		return i;
+	 
+}
+
+
+//------playing game functions -----------------------------
+
+//player settiing
+int configUser(void) {
+	
+	printf("input a number of player(MAX:%d): ",N_MAX_USER);
+	n_user=getIntegerInput();
+	
+	if (n_user>N_MAX_USER||n_user<=0)
+	 printf("The number of players must be from 1 to %d",N_MAX_USER);
+	else
+	 printf("---> cards are mixed& putted into tray\n");	
+}
+
+//betting
 int betDollar(void){
 	
 	int bet=0;//player 배팅 금액 
@@ -165,44 +208,32 @@ int betDollar(void){
 	//승패에 따라 배팅금액 변화 만들기 
 }
 
-int getIntegerInput(void) {
-    int input, num;
-    
-    num = scanf("%d", &input);
-    fflush(stdin);
-    if (num != 1) //if it fails to get integer
-        input = -1;
-    
-    return input;
-}
-
-int pullCard(void) {
-	 
-	 cardIndex++;	 
-	 
-	 return cardIndex;
-}
-
+//offering initial 2 cards
 void offerCards(void) {
+	
 	int i;
-	//1. give two card for each players
+	
+	
+	cardhold[n_user][0]=pullCard();//give first card for dealer
+	cardhold[n_user][1]=pullCard();//give second card for dealer
+	
 	for (i=0;i<n_user;i++)
 	{
-		cardhold[i][0] = pullCard();
-		cardhold[i][1] = pullCard();
+		cardhold[i][0]=pullCard();
+		cardhold[i][1]=pullCard();
 	}
-	//2. give two card for the operator
-	cardhold[n_user][0] = pullCard();
-	cardhold[n_user][1] = pullCard();
 	
 	return;
 }
 
+//print initial card status
 void printCardInitialStatus(void) {
 	
+
 	
 }
 
+//getAction, Hit or Stay
 int getAction(void) {
 	
 	int act; //Hit or Stay
@@ -210,12 +241,14 @@ int getAction(void) {
 	printf("\t▒▒▒Action: Hit(0) or Stay(others)");
 	act=getIntegerInput;
 	
-	if(act==0) //Hit-->계속 진행
+	if(act==0)
+	 return 0;
 	else //멈춤 
 	
 	return act; 
 }
 
+//literally...
 void printUserCardStatus(int user, int cardcnt) {
 	int i;
 	
@@ -225,6 +258,43 @@ void printUserCardStatus(int user, int cardcnt) {
 	printf("\t ▒▒▒ ");
 }
 
+// calculate the card sum and see if : 1. under 21, 2. over 21, 3. blackjack
+int calcStepResult() {
+	
+	int i;
+	
+	printf("----------ROUND%d RESULT\n",roundIndex);
+	printf("--->your result: ");
+	
+	for(i=1;i<=n_user;i++)
+	{
+		printf("--->player%d result: ",i);
+	}
+}
+
+int checkResult() {
+	
+}
+
+int checkWinner() {
+	
+}
+
+int sumCard(int cardnum,int i) {
+	
+	if(cardnum%13==1)							//A is 1 or 11
+		
+		cardSum[i]+=1;
+		
+	else if(cardnum%13==11||card%13==12||card%13==0)	//J,Q,K==10 
+		cardSum[i]+=10;
+
+	else if(cardnum%13>=2 && card%13<=10)	
+		cardSum[i]+=card%13;
+		
+
+		
+}
 
 int main(int argc, char *argv[]) {
 	int roundIndex = 0;
@@ -233,15 +303,8 @@ int main(int argc, char *argv[]) {
 	
 	srand((unsigned)time(NULL));
 	
-	//참여인원 입력 
 
-	printf("input a number of player(MAX:%d): ",N_MAX_USER);
-	n_user=getIntegerInput();
 	
-	if (n_user>N_MAX_USER||n_user<=0)
-	 printf("The number of players must be from 1 to %d",N_MAX_USER);
-	else
-	 printf("---> cards are mixed& putted into tray\n");
 	 
 	//Game initialization --------
 	//1. players' dollar
@@ -283,16 +346,6 @@ int main(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-	
-	//참여인원 입력 
-
-	printf("input a number of player(MAX:%d): ",N_MAX_USER);
-	n_user=getIntegerInput();
-	
-	if (n_user>N_MAX_USER||n_user<=0)
-	 printf("The number of players must be from 1 to %d",N_MAX_USER);
-	else
-	 printf("---> cards are mixed& putted into tray\n");
 	
 	//게임시작
 	while(gameEnd!=0){ 
