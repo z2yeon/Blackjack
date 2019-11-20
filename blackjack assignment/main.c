@@ -291,42 +291,44 @@ int checkResult() {
 	printf("----------ROUND%d RESULT\n",roundIndex);
 	printf("--->your result: ");
 	
-	if(cardSum[0]==21)
-		print("Blackjack! Win.\t--->$%d\n",dollar[0]);
-	else if (cardSum[0]>21)
-			printf("lose due to overflow!  --> $%d\n",dollar[0]);
 	
-	for(i=1;i<n_user;i++)
+	
+	for(i=0;i<n_user;i++)
 	{
-		printf("--->player%d's result: ",i);			
 		
-		
-		if(cardSum[i]>21)
-			printf("lose due to overflow!  --> $%d\n",dollar[i]);		//overflow, lose
-		
-		else if(cardSum[i]==21)
-			printf("Blackjack! Win.---> $%d\n",dollar[i]);				//blackjack, win
-		
-		else if(cardSum[n_user]>21)
-		{
-			dollar[i]+=bet[i];
-			printf("dealer overflow! win!  --> $%d\n",dollar[i]);
-		}
-		else if(cardSum[n_user]==21)
-		{
-			dollar[i]-=bet[i];
-			printf("dealer blackjack! lose  --> $%d\n",dollar[i]);
-		}
-		else if(cardSum[i]>=cardSum[n_user])
-		{
-			dollar[i]+=bet[i];
-			printf("win! (sum:%d)  --> $%d\n",cardSum[i],dollar[i]);
-		}
-		else if(cardSum[i]<cardSum[n_user])
+	 if(i==0)
+	 	printf("--->your result:");
+	 else
+	 	printf("--->player%d's result:",i);
+	 	
+	 	
+	 	
+ 	 if(cardSum[i]==21)			//blackjack, win
+	 {
+	  dollar[i]+=bet[i];
+	  printf("Blackjack! Win.\t--->$%d\n",dollar[i]);
+	 }
+	
+	
+	 else if (cardSum[i]>21)	//overflow, lose
+	 {
+	  dollar[i]-=bet[i];
+	  printf("Overflow! Lose.\t--->$%d\n",dollar[i]);
+	 }
+
+	 else if(cardSum[n_user]==21)
 		{
 			dollar[i]-=bet[i];
-			printf("lose  (sum:%d)  --> $%d\n",cardSum[i],dollar[i]);
+			printf("Dealer Blackjack! Lose.  --> $%d\n",dollar[i]);
 		}
+	
+	 else if(cardSum[i]<21&&cardSum[n_user]>21)
+		{
+			dollar[i]+=bet[i];
+			printf("Dealer Overflow!Win.  --> $%d\n",dollar[i]);
+		}
+		
+     
 	}	
 }
 
@@ -338,7 +340,6 @@ int sumCard(int cardnum,int i) {
 	
 	if(cardnum%13+1==1)							//A is 1 or 11
 	{	
-		
 		cardSum[i]+=1;
 	}
 	else if(cardnum%13+1==11||cardnum%13+1==12||cardnum%13+1==13)	//J,Q,K==10 
