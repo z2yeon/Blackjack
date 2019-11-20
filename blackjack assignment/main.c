@@ -28,7 +28,7 @@ int n_user;									//number of users
 //play yard information
 int cardhold[N_MAX_USER+1][N_MAX_CARDHOLD];	//cards that currently the players hold
 int cardSum[N_MAX_USER];					//sum of the cards
-int cardCount[]
+int cardCount[];
 int bet[N_MAX_USER];						//current betting 
 int gameEnd = 0;							//game end flag
 int roundIndex = 0;							//round Index
@@ -54,7 +54,7 @@ int getCardNum(int cardnum) {
 	switch(cardnum%13+1)
 	{
 		case 1:
-			return 11;
+			return 1;
 			break;
 			
 		case 10:
@@ -126,12 +126,10 @@ void mixCardTray(void){
 		for(j=0;j<N_CARDSET*N_CARD;j++)
 	    {
 		 CardTray[j]=j;
-		 rn=rand()%N_CARDSET*N_CARD;
+		 rn=rand()%(N_CARDSET*N_CARD);
 		 swap(CardTray[j],CardTray[rn]);
 	    }
 	}
-	
-
 	
 }
 
@@ -167,10 +165,11 @@ int betDollar(void){
 	int betting;
 	
 	srand((unsigned)time(NULL));
+				
+	printf("----------BETTING STEP---------\n");
 	
 	do{
-			
-	 printf("----------BETTING STEP---------\n");
+
 	 printf("--->your betting(total:$%d): ",dollar[0]);
 	 betting=getIntegerInput();	
 	 
@@ -186,11 +185,21 @@ int betDollar(void){
 	
 	if (0<betting&&betting<=dollar[0])
 	{
-		betting=bet[0];				//player 배팅금액
-		for(i=1;i<n_user;i++)//다른 player 배팅금액(랜덤)
+		bet[0]=betting;				//player 배팅금액
+		
+		for(i=1;i<n_user;i++)		//다른 player 배팅금액(랜덤)
 		{
 	     bet[i]=(rand()%N_MAX_BET)+1;
-		 printf("--->player%d:$%d\n",i,bet[i]);
+	     
+	     if(bet[i]<dollar[i])
+		  printf("--->player%d:$%d\n",i,bet[i]);
+		 
+		 else if(bet[i]>dollar[i]) //남은 돈보다 배팅금액이 클때  
+		 {
+		 	bet[i]=rand()%dollar[i]+1;
+		    printf("--->player%d:$%d\n",i,bet[i]);
+		 }
+		 
 		}	
 	}
 }
@@ -275,23 +284,21 @@ int calcStepResult(int user,int cardcnt) {
 	
 	int i;
 	int sum;
-	
+
 	for(i=0;i<cardcnt;i++)
 	{
 		sum+=getCardNum(cardhold[user][i]);
 		cardSum[i]=sum;
 	}
 	
+	return sum; 
 }
 
 int checkResult() {
 	
 	int i;
 	
-	printf("----------ROUND%d RESULT\n",roundIndex);
-	printf("--->your result: ");
-	
-	
+	printf("\n----------ROUND%d RESULT\n",roundIndex);
 	
 	for(i=0;i<n_user;i++)
 	{
@@ -316,23 +323,60 @@ int checkResult() {
 	  printf("Overflow! Lose.\t--->$%d\n",dollar[i]);
 	 }
 
-	 else if(cardSum[n_user]==21)
+	 else if(cardSum[n_user]==21&&cardSum[i]<21)	//Dealer blackjack, lose
 		{
 			dollar[i]-=bet[i];
 			printf("Dealer Blackjack! Lose.  --> $%d\n",dollar[i]);
 		}
 	
-	 else if(cardSum[i]<21&&cardSum[n_user]>21)
+	 else if(cardSum[i]<21&&cardSum[n_user]>21)		//Dealer overflow, win
 		{
 			dollar[i]+=bet[i];
 			printf("Dealer Overflow!Win.  --> $%d\n",dollar[i]);
 		}
 		
+	 else if(cardSum[i]<21&&cardSum[i]>cardSum[n_user]) 	
+		{
+			dollar[i]+=bet[i];
+			printf("Win!(sum:%d)\t-->$%d\n",cardSum[i],dollar[i]); 
+		}
      
+     else if(cardSum[i]<21&&cardSum[i]<cardSum[n_user])
+     	{
+     		dollar[i]-=bet[i];
+     		printf("Lose!(sum:%d)\t-->$%d\n",cardSum[i],dollar[i]);
+	 	}
 	}	
 }
 
 int checkWinner() {
+
+    int winner;        //우승자 
+    int i;
+    int max;        //최대값을 저장할 변수
+    
+  	max=cardSum[0];	//user의 값을 최대라고 가정 
+    
+    for(i=1;i<n_user;i++)	//다른player들을 차례로 불러와 대소비교
+							//더 클 경우 max 변수에 새롭게 저장  
+    {
+    	if(max<cardSum[i])
+    	{
+    		max=cardSum[i];
+    		winner=i;
+		}
+	}
+	
+	printf("\n----------------------------------------\n");
+	printf("\n----------------------------------------\n");
+	printf("\n----------------------------------------\n");
+	printf("GAME OVER!\n");
+	
+	if(winner==0) 
+	 printf("Winner is you!");
+	else if(winner>=1&&winner<=N_MAX_USER)
+	 printf("Winner is player%d",winner);
+	
 	
 }
 
@@ -340,7 +384,7 @@ int sumCard(int cardnum,int i) {
 	
 	if(cardnum%13+1==1)							//A is 1 or 11
 	{	
-		cardSum[i]+=1;
+		cardSum[i]+=1;						//if(cardSum[i]>21) cardSum[i]+=10
 	}
 	else if(cardnum%13+1==11||cardnum%13+1==12||cardnum%13+1==13)	//J,Q,K==10 
 		cardSum[i]+=10;
@@ -378,15 +422,31 @@ int main(int argc, char *argv[]) {
 		printCardInitialStatus();
 		printf("\n------------------ GAME start --------------------------\n");
 		
+		//user's turn
+		printf(">>>my turn\n");
+		
+		do{
+		 printUserCardStatus();			//user가 가진 카드를 보여준다 
+		 calcStepResult();
+		 getAction();					//갈지 말지 받아
+		 
+		 for(i=0;i<cardcnt;i++)
+		 {
+		 	cardhold[0][cardcnt]=pullCard();
+		 }
+		}(while getAction==1)			//Stay하면 빠져나오기 
+		 
 		//each player's turn
-		for () //each player
-		{
-			while () //do until the player dies or player says stop
+		for (i=1;i<n_user;i++)         //each player
+		{	
+		 printf(">>>player%d's turn\n",i);
+		 
+			while (cardSum[i]<N_MAX_GO) //do until the player dies or player says stop
 			{
-				//print current card status printUserCardStatus();
-				//check the card status ::: calcStepResult()
-				//GO? STOP? ::: getAction()
-				//check if the turn ends or not
+			 printUserCardStatus();	//print current card status printUserCardStatus();
+			 calcStepResult();		//check the card status
+						 
+			 	//check if the turn ends or not
 			}
 		}
 		
